@@ -33,7 +33,7 @@ class TreatmentInfoScreen extends StatelessWidget {
         children: byCrop.entries.expand((cropGroup) {
           return [
             Padding(
-              padding: const EdgeInsets.only(top: AppConstants.space20, bottom: AppConstants.space12),
+              padding: const EdgeInsets.only(top: AppConstants.space24, bottom: AppConstants.space12),
               child: Text(cropGroup.key, style: AppTextStyles.title),
             ),
             ...cropGroup.value.map(

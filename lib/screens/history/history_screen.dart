@@ -31,7 +31,7 @@ class HistoryScreen extends StatelessWidget {
           Text('History', style: AppTextStyles.headline),
           const SizedBox(height: AppConstants.space4),
           Text('Every leaf you\u2019ve scanned, stored on this device.', style: AppTextStyles.body),
-          const SizedBox(height: AppConstants.space20),
+          const SizedBox(height: AppConstants.space24),
           Expanded(
             child: scans.isEmpty
                 ? const _EmptyHistory()
@@ -100,7 +100,7 @@ class _HistoryTile extends StatelessWidget {
       onDismissed: (_) => onDelete(),
       background: Container(
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.symmetric(horizontal: AppConstants.space20),
+        padding: const EdgeInsets.symmetric(horizontal: AppConstants.space24),
         decoration: BoxDecoration(
           color: AppColors.severe.withOpacity(0.12),
           borderRadius: BorderRadius.circular(AppConstants.radiusMedium),

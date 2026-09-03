@@ -173,7 +173,7 @@ class _ResultView extends StatelessWidget {
                         ),
                         const SizedBox(height: AppConstants.space16),
                         ConfidenceMeter(confidence: result.confidence, severity: result.severity),
-                        const SizedBox(height: AppConstants.space20),
+                        const SizedBox(height: AppConstants.space24),
                         Text(diagnosis.description, style: AppTextStyles.bodyLarge),
                         if (!diagnosis.isHealthy) ...[
                           const SizedBox(height: AppConstants.space24),
