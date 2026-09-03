@@ -35,11 +35,13 @@ class _LeafGuardAppState extends State<LeafGuardApp> {
   }
 
   Future<void> _initialize() async {
-    await Supabase.initialize(
-      url: AppConstants.supabaseUrl,
-      anonKey: AppConstants.supabaseAnonKey,
-    );
-    _supabaseService = SupabaseService();
+    if (AppConstants.hasSupabaseConfig) {
+      await Supabase.initialize(
+        url: AppConstants.supabaseUrl,
+        anonKey: AppConstants.supabaseAnonKey,
+      );
+    }
+    _supabaseService = SupabaseService(enabled: AppConstants.hasSupabaseConfig);
     await _localStorageService.init();
     await _tfliteService.loadModel();
   }

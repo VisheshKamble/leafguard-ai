@@ -22,9 +22,9 @@ class AppConstants {
   static const String modelAssetPath = 'assets/model/leafguard_v1_int8.tflite';
   static const String labelsAssetPath = 'assets/model/labels.txt';
 
-  // TODO: replace with your own Supabase project credentials.
-  // The app still works fully offline for scanning without these set correctly --
-  // they're only needed for optional auth and cloud sync of scan history.
-  static const String supabaseUrl = 'https://YOUR_PROJECT.supabase.co';
-  static const String supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY';
+  static const String supabaseUrl = String.fromEnvironment('SUPABASE_URL');
+  static const String supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
+
+  static bool get hasSupabaseConfig =>
+      supabaseUrl.startsWith('https://') && supabaseAnonKey.isNotEmpty;
 }

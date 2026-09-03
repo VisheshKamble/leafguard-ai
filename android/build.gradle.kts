@@ -34,6 +34,12 @@ subprojects {
             jvmTarget.set(JvmTarget.JVM_17)
         }
     }
+
+    if (name == "tflite_flutter") {
+        tasks.withType<KotlinCompile>().configureEach {
+            enabled = false
+        }
+    }
 }
 
 tasks.register<Delete>("clean") {
