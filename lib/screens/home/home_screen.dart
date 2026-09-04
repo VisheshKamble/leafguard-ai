@@ -23,9 +23,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final tabs = const [
-      DashboardTab(),
-      HistoryScreen(),
+    final tabs = [
+      DashboardTab(onScanTap: _openScan),
+      const HistoryScreen(),
     ];
 
     return Scaffold(
