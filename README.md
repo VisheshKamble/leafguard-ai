@@ -22,16 +22,35 @@ files.
    flutter pub get
    ```
 
-## Camera permissions
+## Camera and gallery permissions
 
 After running `flutter create .`, add camera permission entries (required by
-the `camera` package):
+the `camera` package). If this zip already includes `android/` and `ios/`
+(most exports do), these are already in place.
 
 - **Android** (`android/app/src/main/AndroidManifest.xml`): add
   `<uses-permission android:name="android.permission.CAMERA" />`
 - **iOS** (`ios/Runner/Info.plist`): add an `NSCameraUsageDescription` key
   with a short explanation string (e.g. "LeafGuard needs the camera to scan
-  leaves.")
+  leaves."), and an `NSPhotoLibraryUsageDescription` key for the gallery
+  picker (e.g. "LeafGuard needs photo library access so you can diagnose a
+  leaf from an existing photo.")
+
+Scanning also accepts a photo from the gallery, not just the live camera --
+`image_picker` handles its own Android runtime permission prompt, so no
+extra Android manifest entry is needed for that one.
+
+## Language
+
+The scan flow, navigation, and other app chrome are available in English,
+Hindi, Marathi, Telugu, Tamil, Bengali, Gujarati, Kannada, and Punjabi --
+switch from the globe icon on the home screen. The disease guide's
+descriptions and treatment steps stay in English: that content is
+agronomic/scientific, and translating it without an agronomist reviewing
+each entry risked giving a farmer subtly wrong advice, which is worse than
+an English paragraph in an otherwise-local interface. `lib/core/localization/`
+is where both the language list and the string tables live if you want to
+extend either one.
 
 ## Add the trained model
 
