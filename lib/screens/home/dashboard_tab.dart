@@ -4,14 +4,18 @@ import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/localization/locale_provider.dart';
 import '../../providers/history_provider.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/severity_chip.dart';
+import '../../widgets/leaf_motif.dart';
+import '../../widgets/language_selector.dart';
 import '../../models/scan_result.dart';
 import '../treatment_info/treatment_info_screen.dart';
 
 class DashboardTab extends StatelessWidget {
-  const DashboardTab({super.key});
+  final VoidCallback? onScanTap;
+  const DashboardTab({super.key, this.onScanTap});
 
   @override
   Widget build(BuildContext context) {
@@ -20,19 +24,14 @@ class DashboardTab extends StatelessWidget {
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(
-        AppConstants.space24,
-        AppConstants.space24,
-        AppConstants.space24,
+        AppConstants.space16,
+        AppConstants.space16,
+        AppConstants.space16,
         AppConstants.space32,
       ),
       children: [
-        Text('LeafGuard', style: AppTextStyles.displayLarge),
-        const SizedBox(height: AppConstants.space4),
-        Text(
-          'Point your camera at a leaf. Get a diagnosis in seconds -- no signal needed.',
-          style: AppTextStyles.body,
-        ),
-        const SizedBox(height: AppConstants.space32),
+        _HeroHeader(onScanTap: onScanTap),
+        const SizedBox(height: AppConstants.space24),
         const _CropCoverageRow(),
         const SizedBox(height: AppConstants.space16),
         AppCard(
@@ -55,8 +54,8 @@ class DashboardTab extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Disease guide', style: AppTextStyles.title),
-                    Text('Browse what LeafGuard can identify', style: AppTextStyles.caption),
+                    Text(context.tr('diseaseGuideTitle'), style: AppTextStyles.title),
+                    Text(context.tr('diseaseGuideSubtitle'), style: AppTextStyles.caption),
                   ],
                 ),
               ),
@@ -65,7 +64,10 @@ class DashboardTab extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppConstants.space32),
-        Text('Recent scans', style: AppTextStyles.title),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppConstants.space8),
+          child: Text(context.tr('recentScans'), style: AppTextStyles.title),
+        ),
         const SizedBox(height: AppConstants.space12),
         if (scans.isEmpty)
           const _EmptyScansCard()
@@ -79,19 +81,131 @@ class DashboardTab extends StatelessWidget {
   }
 }
 
-class _CropCoverageRow extends StatelessWidget {
-  const _CropCoverageRow();
-
-  static const _crops = [
-    (label: 'Tomato', icon: Icons.eco_outlined),
-    (label: 'Potato', icon: Icons.eco_outlined),
-    (label: 'Corn', icon: Icons.eco_outlined),
-  ];
+/// The one bold moment on this screen: a deep-gradient banner carrying the
+/// brand mark, tagline, language switcher, and the primary "scan" call to
+/// action -- everything below it stays deliberately calm.
+class _HeroHeader extends StatelessWidget {
+  final VoidCallback? onScanTap;
+  const _HeroHeader({this.onScanTap});
 
   @override
   Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppConstants.radiusXL),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(
+          AppConstants.space24,
+          AppConstants.space24,
+          AppConstants.space24,
+          AppConstants.space24,
+        ),
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [AppColors.primary, AppColors.primaryDeep],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Stack(
+          children: [
+            const Positioned.fill(child: LeafPatternBackground(color: Color(0x1AFFFFFF))),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'LeafGuard',
+                        style: AppTextStyles.displayLarge.copyWith(
+                          color: AppColors.textOnPrimary,
+                          fontSize: 28,
+                        ),
+                      ),
+                    ),
+                    _LanguageButton(onTap: () => showLanguageSelector(context)),
+                  ],
+                ),
+                const SizedBox(height: AppConstants.space8),
+                Text(
+                  context.tr('appTagline'),
+                  style: AppTextStyles.body.copyWith(color: AppColors.textOnPrimary.withOpacity(0.85)),
+                ),
+                if (onScanTap != null) ...[
+                  const SizedBox(height: AppConstants.space16),
+                  InkWell(
+                    onTap: onScanTap,
+                    borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppConstants.space16,
+                        vertical: AppConstants.space12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.16),
+                        borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+                        border: Border.all(color: Colors.white.withOpacity(0.35)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.camera_alt_rounded, color: AppColors.textOnPrimary, size: 18),
+                          const SizedBox(width: AppConstants.space8),
+                          Text(
+                            context.tr('scanLeaf'),
+                            style: AppTextStyles.label.copyWith(color: AppColors.textOnPrimary),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LanguageButton extends StatelessWidget {
+  final VoidCallback onTap;
+  const _LanguageButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      customBorder: const CircleBorder(),
+      child: Container(
+        width: 38,
+        height: 38,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.white.withOpacity(0.16),
+          border: Border.all(color: Colors.white.withOpacity(0.3)),
+        ),
+        child: const Icon(Icons.translate_rounded, color: AppColors.textOnPrimary, size: 18),
+      ),
+    );
+  }
+}
+
+class _CropCoverageRow extends StatelessWidget {
+  const _CropCoverageRow();
+
+  @override
+  Widget build(BuildContext context) {
+    final crops = [
+      (label: context.tr('cropTomato'), icon: Icons.eco_outlined),
+      (label: context.tr('cropPotato'), icon: Icons.eco_outlined),
+      (label: context.tr('cropCorn'), icon: Icons.eco_outlined),
+    ];
+
     return Row(
-      children: _crops
+      children: crops
           .map(
             (crop) => Expanded(
               child: Container(
@@ -127,10 +241,10 @@ class _EmptyScansCard extends StatelessWidget {
         children: [
           const Icon(Icons.camera_alt_outlined, color: AppColors.textSecondary, size: 32),
           const SizedBox(height: AppConstants.space12),
-          Text('No scans yet', style: AppTextStyles.title, textAlign: TextAlign.center),
+          Text(context.tr('noScansYet'), style: AppTextStyles.title, textAlign: TextAlign.center),
           const SizedBox(height: AppConstants.space4),
           Text(
-            'Tap the camera button below to scan your first leaf.',
+            context.tr('noScansHint'),
             style: AppTextStyles.body,
             textAlign: TextAlign.center,
           ),
