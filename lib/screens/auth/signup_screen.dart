@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/localization/locale_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/primary_button.dart';
 
@@ -38,7 +39,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Create account')),
+      appBar: AppBar(title: Text(context.tr('createAccount'))),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(AppConstants.space24),
@@ -46,27 +47,27 @@ class _SignupScreenState extends State<SignupScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Your scans stay on this device either way -- an account just lets you sync and recover them.',
+                context.tr('signupIntro'),
                 style: AppTextStyles.body,
               ),
               const SizedBox(height: AppConstants.space24),
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(hintText: 'Email'),
+                decoration: InputDecoration(hintText: context.tr('emailHint')),
               ),
               const SizedBox(height: AppConstants.space12),
               TextField(
                 controller: _passwordController,
                 obscureText: true,
-                decoration: const InputDecoration(hintText: 'Password'),
+                decoration: InputDecoration(hintText: context.tr('passwordHint')),
               ),
               if (auth.errorMessage != null) ...[
                 const SizedBox(height: AppConstants.space12),
                 Text(auth.errorMessage!, style: AppTextStyles.body.copyWith(color: AppColors.error)),
               ],
               const SizedBox(height: AppConstants.space24),
-              PrimaryButton(label: 'Create account', onPressed: _submit, isLoading: auth.isLoading),
+              PrimaryButton(label: context.tr('createAccount'), onPressed: _submit, isLoading: auth.isLoading),
             ],
           ),
         ),
