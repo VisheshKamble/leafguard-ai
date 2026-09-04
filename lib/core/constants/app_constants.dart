@@ -13,6 +13,7 @@ class AppConstants {
   static const double radiusSmall = 8;
   static const double radiusMedium = 14;
   static const double radiusLarge = 20;
+  static const double radiusXL = 28;
 
   static const Duration animFast = Duration(milliseconds: 180);
   static const Duration animMedium = Duration(milliseconds: 320);
