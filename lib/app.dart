@@ -6,6 +6,7 @@ import 'core/theme/app_theme.dart';
 import 'core/theme/app_colors.dart';
 import 'core/theme/app_text_styles.dart';
 import 'core/constants/app_constants.dart';
+import 'core/localization/locale_provider.dart';
 import 'services/tflite_service.dart';
 import 'services/local_storage_service.dart';
 import 'services/supabase_service.dart';
@@ -25,6 +26,7 @@ class LeafGuardApp extends StatefulWidget {
 class _LeafGuardAppState extends State<LeafGuardApp> {
   final _tfliteService = TFLiteService();
   final _localStorageService = LocalStorageService();
+  final _localeProvider = LocaleProvider();
   SupabaseService? _supabaseService;
   late final Future<void> _initFuture;
 
@@ -42,7 +44,8 @@ class _LeafGuardAppState extends State<LeafGuardApp> {
       );
     }
     _supabaseService = SupabaseService(enabled: AppConstants.hasSupabaseConfig);
-    await _localStorageService.init();
+    await _localStorageService.init(); // also runs Hive.initFlutter()
+    await _localeProvider.load();
     await _tfliteService.loadModel();
   }
 
@@ -63,6 +66,7 @@ class _LeafGuardAppState extends State<LeafGuardApp> {
           }
           return MultiProvider(
             providers: [
+              ChangeNotifierProvider.value(value: _localeProvider),
               ChangeNotifierProvider(create: (_) => AuthProvider(_supabaseService!)),
               ChangeNotifierProvider(
                 create: (_) => ScanProvider(_tfliteService, _localStorageService, _supabaseService!),
@@ -85,7 +89,9 @@ class _LeafGuardAppState extends State<LeafGuardApp> {
 
 /// Shown if the model or a required service fails to load at startup --
 /// most commonly because the .tflite/labels.txt files aren't bundled yet.
-/// See the app README for where those files need to go.
+/// See the app README for where those files need to go. Like the splash
+/// screen, this renders outside the provider tree, so its copy stays in
+/// English rather than calling `context.tr()`.
 class _InitErrorScreen extends StatelessWidget {
   final String error;
   const _InitErrorScreen({required this.error});
