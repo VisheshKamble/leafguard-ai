@@ -68,5 +68,7 @@
 	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>This app requires camera access to scan and diagnose plant diseases.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>LeafGuard needs photo library access so you can diagnose a leaf from an existing photo.</string>
 </dict>
 </plist>
