@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/localization/locale_provider.dart';
 import '../../core/data/disease_catalog.dart';
 import '../../providers/history_provider.dart';
 import '../../models/scan_result.dart';
@@ -28,9 +29,9 @@ class HistoryScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('History', style: AppTextStyles.headline),
+          Text(context.tr('historyTitle'), style: AppTextStyles.headline),
           const SizedBox(height: AppConstants.space4),
-          Text('Every leaf you\u2019ve scanned, stored on this device.', style: AppTextStyles.body),
+          Text(context.tr('historySubtitle'), style: AppTextStyles.body),
           const SizedBox(height: AppConstants.space24),
           Expanded(
             child: scans.isEmpty
@@ -67,9 +68,9 @@ class _EmptyHistory extends StatelessWidget {
           children: [
             const Icon(Icons.history_rounded, color: AppColors.textSecondary, size: 36),
             const SizedBox(height: AppConstants.space12),
-            Text('Nothing scanned yet', style: AppTextStyles.title),
+            Text(context.tr('nothingScannedYet'), style: AppTextStyles.title),
             const SizedBox(height: AppConstants.space4),
-            Text('Your scan history will show up here.', style: AppTextStyles.body),
+            Text(context.tr('historyEmptyHint'), style: AppTextStyles.body),
           ],
         ),
       ),
