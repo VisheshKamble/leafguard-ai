@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/localization/locale_provider.dart';
 import '../../providers/scan_provider.dart';
 import '../../models/scan_result.dart';
 import '../../widgets/severity_chip.dart';
@@ -50,7 +51,7 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
         child: switch (scanProvider.status) {
           ScanStatus.idle || ScanStatus.analyzing => _AnalyzingView(imageFile: widget.imageFile),
           ScanStatus.error => _ErrorView(
-              message: scanProvider.errorMessage ?? 'Something went wrong.',
+              message: scanProvider.errorMessage ?? context.tr('errorGeneric'),
               onRetry: () => Navigator.of(context).pop(),
             ),
           ScanStatus.done => FadeTransition(
@@ -86,7 +87,7 @@ class _AnalyzingView extends StatelessWidget {
           padding: const EdgeInsets.all(AppConstants.space32),
           decoration: const BoxDecoration(
             color: AppColors.surface,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(AppConstants.radiusLarge)),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(AppConstants.radiusXL)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -97,9 +98,9 @@ class _AnalyzingView extends StatelessWidget {
                 child: CircularProgressIndicator(strokeWidth: 2.5, color: AppColors.primary),
               ),
               const SizedBox(height: AppConstants.space16),
-              Text('Analyzing your leaf...', style: AppTextStyles.title),
+              Text(context.tr('analyzing'), style: AppTextStyles.title),
               const SizedBox(height: AppConstants.space4),
-              Text('Running entirely on this device', style: AppTextStyles.body),
+              Text(context.tr('runningOnDevice'), style: AppTextStyles.body),
             ],
           ),
         ),
@@ -125,7 +126,7 @@ class _ErrorView extends StatelessWidget {
             const SizedBox(height: AppConstants.space16),
             Text(message, style: AppTextStyles.bodyLarge, textAlign: TextAlign.center),
             const SizedBox(height: AppConstants.space24),
-            PrimaryButton(label: 'Try again', onPressed: onRetry),
+            PrimaryButton(label: context.tr('tryAgain'), onPressed: onRetry),
           ],
         ),
       ),
@@ -150,61 +151,87 @@ class _ResultView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ClipRRect(
-                    child: SizedBox(
-                      height: 220,
-                      width: double.infinity,
-                      child: Image.file(File(result.imagePath), fit: BoxFit.cover),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(AppConstants.space24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(diagnosis.cropName, style: AppTextStyles.caption),
-                        const SizedBox(height: 2),
-                        Text(diagnosis.diseaseName, style: AppTextStyles.headline),
-                        const SizedBox(height: AppConstants.space12),
-                        Row(
-                          children: [
-                            SeverityChip(severity: result.severity),
-                          ],
-                        ),
-                        const SizedBox(height: AppConstants.space16),
-                        ConfidenceMeter(confidence: result.confidence, severity: result.severity),
-                        const SizedBox(height: AppConstants.space24),
-                        Text(diagnosis.description, style: AppTextStyles.bodyLarge),
-                        if (!diagnosis.isHealthy) ...[
-                          const SizedBox(height: AppConstants.space24),
-                          TabBar(
-                            labelColor: AppColors.primary,
-                            unselectedLabelColor: AppColors.textSecondary,
-                            indicatorColor: AppColors.primary,
-                            labelStyle: AppTextStyles.label,
-                            tabs: const [
-                              Tab(text: 'Organic'),
-                              Tab(text: 'Chemical'),
-                              Tab(text: 'Prevention'),
-                            ],
-                          ),
-                          SizedBox(
-                            height: 220,
-                            child: TabBarView(
-                              children: [
-                                _TreatmentList(items: diagnosis.organicTreatment),
-                                _TreatmentList(items: diagnosis.chemicalTreatment),
-                                _TreatmentList(items: diagnosis.preventionTips),
-                              ],
+                  Stack(
+                    children: [
+                      SizedBox(
+                        height: 240,
+                        width: double.infinity,
+                        child: Image.file(File(result.imagePath), fit: BoxFit.cover),
+                      ),
+                      Positioned.fill(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [Colors.transparent, Colors.black.withOpacity(0.28)],
+                              stops: const [0.6, 1.0],
                             ),
                           ),
-                        ] else ...[
-                          const SizedBox(height: AppConstants.space24),
-                          Text('Keep it that way', style: AppTextStyles.title),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Transform.translate(
+                    offset: const Offset(0, -20),
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(AppConstants.radiusXL)),
+                      ),
+                      padding: const EdgeInsets.fromLTRB(
+                        AppConstants.space24,
+                        AppConstants.space24,
+                        AppConstants.space24,
+                        AppConstants.space24,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(diagnosis.cropName, style: AppTextStyles.caption),
+                          const SizedBox(height: 2),
+                          Text(diagnosis.diseaseName, style: AppTextStyles.headline),
                           const SizedBox(height: AppConstants.space12),
-                          _TreatmentList(items: diagnosis.preventionTips),
+                          Row(
+                            children: [
+                              SeverityChip(severity: result.severity),
+                            ],
+                          ),
+                          const SizedBox(height: AppConstants.space16),
+                          ConfidenceMeter(confidence: result.confidence, severity: result.severity),
+                          const SizedBox(height: AppConstants.space24),
+                          Text(diagnosis.description, style: AppTextStyles.bodyLarge),
+                          if (!diagnosis.isHealthy) ...[
+                            const SizedBox(height: AppConstants.space24),
+                            TabBar(
+                              labelColor: AppColors.primary,
+                              unselectedLabelColor: AppColors.textSecondary,
+                              indicatorColor: AppColors.primary,
+                              labelStyle: AppTextStyles.label,
+                              tabs: [
+                                Tab(text: context.tr('tabOrganic')),
+                                Tab(text: context.tr('tabChemical')),
+                                Tab(text: context.tr('tabPrevention')),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 220,
+                              child: TabBarView(
+                                children: [
+                                  _TreatmentList(items: diagnosis.organicTreatment),
+                                  _TreatmentList(items: diagnosis.chemicalTreatment),
+                                  _TreatmentList(items: diagnosis.preventionTips),
+                                ],
+                              ),
+                            ),
+                          ] else ...[
+                            const SizedBox(height: AppConstants.space24),
+                            Text(context.tr('keepItThatWay'), style: AppTextStyles.title),
+                            const SizedBox(height: AppConstants.space12),
+                            _TreatmentList(items: diagnosis.preventionTips),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
                   ),
                 ],
@@ -219,7 +246,7 @@ class _ResultView extends StatelessWidget {
               AppConstants.space24,
             ),
             child: PrimaryButton(
-              label: 'Scan another leaf',
+              label: context.tr('scanAnother'),
               icon: Icons.camera_alt_rounded,
               onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
             ),
