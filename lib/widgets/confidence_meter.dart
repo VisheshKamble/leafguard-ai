@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
 import '../core/theme/app_text_styles.dart';
+import '../core/localization/locale_provider.dart';
 import '../models/scan_result.dart';
 
 class ConfidenceMeter extends StatelessWidget {
@@ -24,18 +25,29 @@ class ConfidenceMeter extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Confidence', style: AppTextStyles.caption),
-            Text('$pct%', style: AppTextStyles.label),
+            Text(context.tr('confidence'), style: AppTextStyles.caption),
+            Text('$pct%', style: AppTextStyles.label.copyWith(color: _color)),
           ],
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 8),
         ClipRRect(
           borderRadius: BorderRadius.circular(999),
-          child: LinearProgressIndicator(
-            value: confidence.clamp(0.0, 1.0),
-            minHeight: 8,
-            backgroundColor: AppColors.surfaceMuted,
-            valueColor: AlwaysStoppedAnimation(_color),
+          child: Container(
+            height: 10,
+            color: AppColors.surfaceMuted,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: FractionallySizedBox(
+                widthFactor: confidence.clamp(0.0, 1.0),
+                heightFactor: 1.0,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(colors: [_color.withOpacity(0.65), _color]),
+                    boxShadow: [BoxShadow(color: _color.withOpacity(0.35), blurRadius: 6)],
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
       ],
