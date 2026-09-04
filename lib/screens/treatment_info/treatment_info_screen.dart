@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/localization/locale_provider.dart';
 import '../../core/data/disease_catalog.dart';
 import '../../models/disease_info.dart';
 import '../../widgets/app_card.dart';
@@ -22,7 +23,7 @@ class TreatmentInfoScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Disease guide')),
+      appBar: AppBar(title: Text(context.tr('diseaseGuideTitle'))),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(
           AppConstants.space24,
@@ -57,24 +58,29 @@ class _DiseaseExpansionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppCard(
       padding: EdgeInsets.zero,
-      child: Theme(
-        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          tilePadding: const EdgeInsets.symmetric(horizontal: AppConstants.space16),
-          childrenPadding: const EdgeInsets.fromLTRB(
-            AppConstants.space16,
-            0,
-            AppConstants.space16,
-            AppConstants.space16,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+        clipBehavior: Clip.antiAlias,
+        child: Theme(
+          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+          child: ExpansionTile(
+            tilePadding: const EdgeInsets.symmetric(horizontal: AppConstants.space16),
+            childrenPadding: const EdgeInsets.fromLTRB(
+              AppConstants.space16,
+              0,
+              AppConstants.space16,
+              AppConstants.space16,
+            ),
+            title: Text(disease.diseaseName, style: AppTextStyles.label),
+            children: [
+              Text(disease.description, style: AppTextStyles.body),
+              const SizedBox(height: AppConstants.space12),
+              _Section(title: context.tr('organicTreatment'), items: disease.organicTreatment),
+              _Section(title: context.tr('chemicalTreatment'), items: disease.chemicalTreatment),
+              _Section(title: context.tr('preventionTips'), items: disease.preventionTips),
+            ],
           ),
-          title: Text(disease.diseaseName, style: AppTextStyles.label),
-          children: [
-            Text(disease.description, style: AppTextStyles.body),
-            const SizedBox(height: AppConstants.space12),
-            _Section(title: 'Organic treatment', items: disease.organicTreatment),
-            _Section(title: 'Chemical treatment', items: disease.chemicalTreatment),
-            _Section(title: 'Prevention', items: disease.preventionTips),
-          ],
         ),
       ),
     );
