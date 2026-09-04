@@ -19,9 +19,11 @@ class AppColors {
   // Brand
   static const Color primary = Color(0xFF2F5233); // deep moss green
   static const Color primaryDark = Color(0xFF1F3A23);
+  static const Color primaryDeep = Color(0xFF13241A); // deepest forest -- gradients & glow shadows only
   static const Color primaryLight = Color(0xFF7C9473); // sage
 
   static const Color accent = Color(0xFFC97B2E); // ochre -- used sparingly
+  static const Color accentGlow = Color(0xFFF0B75B); // lighter gold, for gradient highlights only
 
   // Text
   static const Color textPrimary = Color(0xFF2B2820); // warm charcoal
@@ -29,6 +31,7 @@ class AppColors {
   static const Color textOnPrimary = Color(0xFFFAF9F3);
 
   static const Color divider = Color(0xFFE1DECE);
+  static const Color glassSurface = Color(0xE6FFFFFF); // frosted white overlay for the nav bar
 
   // Severity states -- read at a glance, not decoration
   static const Color healthy = Color(0xFF4A7A52);
