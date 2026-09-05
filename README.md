@@ -5,6 +5,7 @@ full problem statement, model training pipeline, and architecture.
 
 ## Setup
 
+
 This zip contains the Dart source (`lib/`), `pubspec.yaml`, and `assets/` --
 it does **not** include the generated native `android/`/`ios/` platform
 folders, since those are large, machine-generated boilerplate that Flutter
