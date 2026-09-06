@@ -11,6 +11,7 @@ import '../../widgets/severity_chip.dart';
 import '../../widgets/confidence_meter.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/primary_button.dart';
+import '../chat/chat_screen.dart';
 
 class ResultsScreen extends StatefulWidget {
   final File imageFile;
@@ -245,10 +246,23 @@ class _ResultView extends StatelessWidget {
               AppConstants.space24,
               AppConstants.space24,
             ),
-            child: PrimaryButton(
-              label: context.tr('scanAnother'),
-              icon: Icons.camera_alt_rounded,
-              onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+            child: Column(
+              children: [
+                PrimaryButton(
+                  label: context.tr('askAiAboutThis'),
+                  icon: Icons.auto_awesome_rounded,
+                  variant: ButtonVariant.secondary,
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => ChatScreen(scanContext: result)),
+                  ),
+                ),
+                const SizedBox(height: AppConstants.space12),
+                PrimaryButton(
+                  label: context.tr('scanAnother'),
+                  icon: Icons.camera_alt_rounded,
+                  onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+                ),
+              ],
             ),
           ),
         ],

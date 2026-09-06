@@ -10,11 +10,14 @@ import 'core/localization/locale_provider.dart';
 import 'services/tflite_service.dart';
 import 'services/local_storage_service.dart';
 import 'services/supabase_service.dart';
+import 'services/ai_chat_service.dart';
 import 'providers/auth_provider.dart';
 import 'providers/scan_provider.dart';
 import 'providers/history_provider.dart';
+import 'providers/chat_provider.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/splash/splash_screen.dart';
+import 'screens/onboarding/setup_screen.dart';
 
 class LeafGuardApp extends StatefulWidget {
   const LeafGuardApp({super.key});
@@ -28,6 +31,7 @@ class _LeafGuardAppState extends State<LeafGuardApp> {
   final _localStorageService = LocalStorageService();
   final _localeProvider = LocaleProvider();
   SupabaseService? _supabaseService;
+  AIChatService? _aiChatService;
   late final Future<void> _initFuture;
 
   @override
@@ -44,6 +48,7 @@ class _LeafGuardAppState extends State<LeafGuardApp> {
       );
     }
     _supabaseService = SupabaseService(enabled: AppConstants.hasSupabaseConfig);
+    _aiChatService = AIChatService(enabled: AppConstants.hasSupabaseConfig);
     await _localStorageService.init(); // also runs Hive.initFlutter()
     await _localeProvider.load();
     await _tfliteService.loadModel();
@@ -78,12 +83,13 @@ class _LeafGuardAppState extends State<LeafGuardApp> {
               create: (_) => ScanProvider(_tfliteService, _localStorageService, _supabaseService!),
             ),
             ChangeNotifierProvider(create: (_) => HistoryProvider(_localStorageService)),
+            ChangeNotifierProvider(create: (_) => ChatProvider(_aiChatService!)),
           ],
           child: MaterialApp(
             title: 'LeafGuard',
             debugShowCheckedModeBanner: false,
             theme: AppTheme.light,
-            home: const HomeScreen(),
+            home: _localeProvider.onboardingComplete ? const HomeScreen() : const SetupScreen(),
           ),
         );
       },

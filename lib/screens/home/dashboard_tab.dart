@@ -9,13 +9,13 @@ import '../../providers/history_provider.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/severity_chip.dart';
 import '../../widgets/leaf_motif.dart';
-import '../../widgets/language_selector.dart';
 import '../../models/scan_result.dart';
 import '../treatment_info/treatment_info_screen.dart';
 
 class DashboardTab extends StatelessWidget {
   final VoidCallback? onScanTap;
-  const DashboardTab({super.key, this.onScanTap});
+  final VoidCallback? onAskAiTap;
+  const DashboardTab({super.key, this.onScanTap, this.onAskAiTap});
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +34,10 @@ class DashboardTab extends StatelessWidget {
         const SizedBox(height: AppConstants.space24),
         const _CropCoverageRow(),
         const SizedBox(height: AppConstants.space16),
+        if (onAskAiTap != null) ...[
+          _AskAiCard(onTap: onAskAiTap!),
+          const SizedBox(height: AppConstants.space12),
+        ],
         AppCard(
           onTap: () => Navigator.of(context).push(
             MaterialPageRoute(builder: (_) => const TreatmentInfoScreen()),
@@ -81,6 +85,59 @@ class DashboardTab extends StatelessWidget {
   }
 }
 
+/// A gradient-bordered call-out for the AI assistant -- the "entire app
+/// is AI powered" idea needs one clear, findable door into it beyond the
+/// top bar icon, and the dashboard is where a farmer already expects to
+/// look for what LeafGuard can do for them.
+class _AskAiCard extends StatelessWidget {
+  final VoidCallback onTap;
+  const _AskAiCard({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+      child: Container(
+        padding: const EdgeInsets.all(AppConstants.space16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+          gradient: LinearGradient(
+            colors: [AppColors.primary.withOpacity(0.08), AppColors.accent.withOpacity(0.10)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          border: Border.all(color: AppColors.primary.withOpacity(0.18)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(colors: [AppColors.primary, AppColors.primaryDeep]),
+              ),
+              child: const Icon(Icons.auto_awesome_rounded, color: AppColors.textOnPrimary, size: 20),
+            ),
+            const SizedBox(width: AppConstants.space12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(context.tr('askAiCardTitle'), style: AppTextStyles.title),
+                  Text(context.tr('askAiCardSubtitle'), style: AppTextStyles.caption),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// The one bold moment on this screen: a deep-gradient banner carrying the
 /// brand mark, tagline, language switcher, and the primary "scan" call to
 /// action -- everything below it stays deliberately calm.
@@ -112,20 +169,12 @@ class _HeroHeader extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'LeafGuard',
-                        style: AppTextStyles.displayLarge.copyWith(
-                          color: AppColors.textOnPrimary,
-                          fontSize: 28,
-                        ),
-                      ),
-                    ),
-                    _LanguageButton(onTap: () => showLanguageSelector(context)),
-                  ],
+                Text(
+                  'LeafGuard',
+                  style: AppTextStyles.displayLarge.copyWith(
+                    color: AppColors.textOnPrimary,
+                    fontSize: 28,
+                  ),
                 ),
                 const SizedBox(height: AppConstants.space8),
                 Text(
@@ -165,29 +214,6 @@ class _HeroHeader extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _LanguageButton extends StatelessWidget {
-  final VoidCallback onTap;
-  const _LanguageButton({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      customBorder: const CircleBorder(),
-      child: Container(
-        width: 38,
-        height: 38,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.white.withOpacity(0.16),
-          border: Border.all(color: Colors.white.withOpacity(0.3)),
-        ),
-        child: const Icon(Icons.translate_rounded, color: AppColors.textOnPrimary, size: 18),
       ),
     );
   }
