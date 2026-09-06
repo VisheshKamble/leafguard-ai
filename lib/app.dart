@@ -51,32 +51,42 @@ class _LeafGuardAppState extends State<LeafGuardApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'LeafGuard',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      home: FutureBuilder<void>(
-        future: _initFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return const SplashScreen();
-          }
-          if (snapshot.hasError) {
-            return _InitErrorScreen(error: snapshot.error.toString());
-          }
-          return MultiProvider(
-            providers: [
-              ChangeNotifierProvider.value(value: _localeProvider),
-              ChangeNotifierProvider(create: (_) => AuthProvider(_supabaseService!)),
-              ChangeNotifierProvider(
-                create: (_) => ScanProvider(_tfliteService, _localStorageService, _supabaseService!),
-              ),
-              ChangeNotifierProvider(create: (_) => HistoryProvider(_localStorageService)),
-            ],
-            child: const HomeScreen(),
+    return FutureBuilder<void>(
+      future: _initFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return MaterialApp(
+            title: 'LeafGuard',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.light,
+            home: const SplashScreen(),
           );
-        },
-      ),
+        }
+        if (snapshot.hasError) {
+          return MaterialApp(
+            title: 'LeafGuard',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.light,
+            home: _InitErrorScreen(error: snapshot.error.toString()),
+          );
+        }
+        return MultiProvider(
+          providers: [
+            ChangeNotifierProvider.value(value: _localeProvider),
+            ChangeNotifierProvider(create: (_) => AuthProvider(_supabaseService!)),
+            ChangeNotifierProvider(
+              create: (_) => ScanProvider(_tfliteService, _localStorageService, _supabaseService!),
+            ),
+            ChangeNotifierProvider(create: (_) => HistoryProvider(_localStorageService)),
+          ],
+          child: MaterialApp(
+            title: 'LeafGuard',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.light,
+            home: const HomeScreen(),
+          ),
+        );
+      },
     );
   }
 
