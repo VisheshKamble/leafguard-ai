@@ -12,13 +12,8 @@
 //   supabase functions deploy ai-chat
 //   supabase secrets set GROQ_API_KEY=gsk_...
 //
-// If your app lets people use the assistant WITHOUT signing in (LeafGuard's
-// "continue without account" flow), Supabase's default JWT check will
-// reject anonymous calls. Either:
-//   (a) deploy with:  supabase functions deploy ai-chat --no-verify-jwt
-//   (b) or enable Anonymous sign-ins (Authentication > Providers) so every
-//       app session has a valid (anonymous) JWT.
-// Option (a) is simplest for a portfolio/demo build.
+// This function requires a real Supabase Auth user. Deploy without
+// `--no-verify-jwt`; the application-level check below is defense in depth.
 
 // Supabase loads local values with `supabase functions serve --env-file` and
 // deployed values from Supabase secrets.
@@ -31,6 +26,8 @@ declare const Deno: {
 };
 
 const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY') ?? '';
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
+const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
 // The deployed default is OpenAI's open-weight model served by Groq. Override
 // it with the AI_CHAT_MODEL secret/env var when needed.
 const MODEL = Deno.env.get('AI_CHAT_MODEL') ?? 'openai/gpt-oss-120b';
@@ -42,6 +39,23 @@ const corsHeaders = {
 };
 
 const jsonHeaders = { ...corsHeaders, 'Content-Type': 'application/json; charset=utf-8' };
+
+const MAX_BODY_BYTES = 32 * 1024;
+const MAX_MESSAGE_LENGTH = 2_000;
+const MAX_HISTORY_TURNS = 12;
+const MAX_TURN_LENGTH = 2_000;
+const MAX_LOCATION_LENGTH = 200;
+const MAX_PREFERRED_CROPS = 10;
+const MAX_CROP_LENGTH = 80;
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_REQUESTS = 20;
+
+interface RateLimitEntry {
+  startedAt: number;
+  count: number;
+}
+
+const rateLimits = new Map<string, RateLimitEntry>();
 
 interface ChatTurn {
   role: 'user' | 'assistant';
@@ -64,6 +78,47 @@ interface RequestBody {
   location?: string;
   preferredCrops?: string[];
   scanContext?: ScanContext;
+}
+
+async function getAuthenticatedUserId(req: Request): Promise<string | null> {
+  const authorization = req.headers.get('authorization');
+  if (!authorization?.startsWith('Bearer ') || !SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    return null;
+  }
+
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      authorization,
+    },
+  });
+  if (!response.ok) return null;
+
+  const user = await response.json() as { id?: unknown };
+  return typeof user.id === 'string' && user.id.length > 0 ? user.id : null;
+}
+
+function isRateLimited(userId: string): boolean {
+  const now = Date.now();
+  const current = rateLimits.get(userId);
+
+  if (!current || now - current.startedAt >= RATE_LIMIT_WINDOW_MS) {
+    rateLimits.set(userId, { startedAt: now, count: 1 });
+  } else {
+    current.count += 1;
+    if (current.count > RATE_LIMIT_REQUESTS) return true;
+  }
+
+  if (rateLimits.size > 10_000) {
+    for (const [key, entry] of rateLimits) {
+      if (now - entry.startedAt >= RATE_LIMIT_WINDOW_MS) rateLimits.delete(key);
+    }
+  }
+  return false;
+}
+
+function errorResponse(error: string, status: number, headers = jsonHeaders): Response {
+  return new Response(JSON.stringify({ error }), { status, headers });
 }
 
 function buildSystemPrompt(body: RequestBody): string {
@@ -102,33 +157,44 @@ Deno.serve(async (req: Request) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  if (req.method !== 'POST') return errorResponse('method not allowed', 405);
+
   try {
+    const userId = await getAuthenticatedUserId(req);
+    if (!userId) return errorResponse('authentication required', 401);
+    if (isRateLimited(userId)) {
+      return new Response(JSON.stringify({ error: 'rate limit exceeded' }), {
+        status: 429,
+        headers: { ...jsonHeaders, 'Retry-After': '60' },
+      });
+    }
+
     if (!GROQ_API_KEY) {
-      return new Response(
-        JSON.stringify({ error: 'GROQ_API_KEY is not configured on the server.' }),
-        { status: 500, headers: jsonHeaders },
-      );
+      return errorResponse('AI service is not configured', 500);
     }
 
     let body: RequestBody;
     try {
-      const parsed: unknown = await req.json();
+      const contentLength = Number(req.headers.get('content-length') ?? 0);
+      if (contentLength > MAX_BODY_BYTES) throw new Error('request body too large');
+      const rawBody = await req.text();
+      if (new TextEncoder().encode(rawBody).length > MAX_BODY_BYTES) {
+        throw new Error('request body too large');
+      }
+      const parsed: unknown = JSON.parse(rawBody);
       if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
         throw new Error('request body must be an object');
       }
       body = parsed as RequestBody;
     } catch {
-      return new Response(JSON.stringify({ error: 'valid JSON body is required' }), {
-        status: 400,
-        headers: jsonHeaders,
-      });
+      return errorResponse('valid JSON body is required', 400);
     }
 
     if (!body.message || typeof body.message !== 'string' || body.message.trim().length === 0) {
-      return new Response(JSON.stringify({ error: 'message is required' }), {
-        status: 400,
-        headers: jsonHeaders,
-      });
+      return errorResponse('message is required', 400);
+    }
+    if (body.message.length > MAX_MESSAGE_LENGTH) {
+      return errorResponse('message is too long', 413);
     }
 
     const history = Array.isArray(body.history)
@@ -136,9 +202,27 @@ Deno.serve(async (req: Request) => {
           (turn): turn is ChatTurn =>
             (turn?.role === 'user' || turn?.role === 'assistant') &&
             typeof turn.content === 'string' &&
-            turn.content.trim().length > 0,
+            turn.content.trim().length > 0 &&
+            turn.content.length <= MAX_TURN_LENGTH,
         )
       : [];
+    if (Array.isArray(body.history) && body.history.length > MAX_HISTORY_TURNS) {
+      return errorResponse('too many history turns', 413);
+    }
+    if (Array.isArray(body.history) && history.length !== body.history.length) {
+      return errorResponse('invalid history turn', 400);
+    }
+    if (body.location !== undefined &&
+        (typeof body.location !== 'string' || body.location.length > MAX_LOCATION_LENGTH)) {
+      return errorResponse('location is invalid or too long', 400);
+    }
+    if (body.preferredCrops !== undefined &&
+        (!Array.isArray(body.preferredCrops) ||
+            body.preferredCrops.length > MAX_PREFERRED_CROPS ||
+            body.preferredCrops.some(
+                (crop) => typeof crop !== 'string' || crop.length > MAX_CROP_LENGTH))) {
+      return errorResponse('preferred crops are invalid', 400);
+    }
 
     // Groq's API is OpenAI-compatible: the system prompt is just the first
     // message in the array (unlike Anthropic, which takes it as a separate

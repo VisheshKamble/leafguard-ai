@@ -207,6 +207,11 @@ placed in Flutter code, a mobile `.env` file, or a Dart define.
 The Edge Function returns JSON using UTF-8 and validates malformed request
 bodies, missing messages, provider failures, and empty provider responses.
 
+AI chat requires an authenticated Supabase user. The function also enforces a
+32 KB request limit, bounds message and history sizes, and limits each user to
+20 requests per minute. These controls protect the server-side Groq quota;
+guest users can still scan locally but cannot use AI chat until they sign in.
+
 ## Supabase Database
 
 The complete schema is in:
@@ -335,12 +340,21 @@ npx supabase secrets set AI_CHAT_MODEL=openai/gpt-oss-120b
 Deploy the Edge Function:
 
 ```powershell
-npx supabase functions deploy ai-chat --no-verify-jwt
+npx supabase functions deploy ai-chat
 ```
 
-The `--no-verify-jwt` option supports the current guest chat flow. For a
-production deployment, prefer authenticated or anonymous Supabase sessions
-and enable JWT verification when the client flow supports it.
+Do not use `--no-verify-jwt`. The repository's `supabase/config.toml` enables
+platform JWT verification, and the function performs a second authenticated
+user check before calling Groq. Verify the deployed setting with:
+
+```powershell
+npx supabase functions list --project-ref YOUR_PROJECT_REF
+```
+
+The `ai-chat` function should report `verify_jwt: true`. The Groq API key must
+only exist in Supabase secrets or the ignored local function env file. The
+Flutter `SUPABASE_ANON_KEY` is a public client key; never place a
+`service_role` key or Groq key in the app or a Dart define.
 
 ### Flutter Android build
 

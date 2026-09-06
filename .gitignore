@@ -50,3 +50,11 @@ Thumbs.db
 # Env / secrets -- important since AppConstants currently holds placeholder
 # Supabase keys; if you move real keys into a .env file instead, ignore it here
 .env
+.env.*
+!.env.example
+
+# Supabase local state and function secrets
+supabase/.temp/
+supabase/functions/.env
+supabase/functions/.env.*
+!supabase/functions/.env.example
