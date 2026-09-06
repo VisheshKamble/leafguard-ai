@@ -7,6 +7,7 @@ import '../../core/localization/locale_provider.dart';
 import '../../core/localization/app_languages.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/leaf_motif.dart';
+import '../auth/login_screen.dart';
 import '../home/home_screen.dart';
 
 /// First-run setup: pick a language, then optionally enter a location.
@@ -36,7 +37,8 @@ class _SetupScreenState extends State<SetupScreen> {
     await locale.setLocation(_locationController.text);
     await locale.completeOnboarding();
     if (mounted) {
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const HomeScreen()));
+      Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const HomeScreen()));
     }
   }
 
@@ -51,7 +53,9 @@ class _SetupScreenState extends State<SetupScreen> {
               child: AnimatedSwitcher(
                 duration: AppConstants.animMedium,
                 child: _step == 0
-                    ? _LanguageStep(key: const ValueKey('lang'), onNext: () => setState(() => _step = 1))
+                    ? _LanguageStep(
+                        key: const ValueKey('lang'),
+                        onNext: () => setState(() => _step = 1))
                     : _LocationStep(
                         key: const ValueKey('loc'),
                         controller: _locationController,
@@ -101,7 +105,8 @@ class _LanguageStep extends StatelessWidget {
             ),
             child: Stack(
               children: [
-                const Positioned.fill(child: LeafPatternBackground(color: Color(0x1AFFFFFF))),
+                const Positioned.fill(
+                    child: LeafPatternBackground(color: Color(0x1AFFFFFF))),
                 Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -112,19 +117,23 @@ class _LanguageStep extends StatelessWidget {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: Colors.white.withOpacity(0.16),
-                        border: Border.all(color: Colors.white.withOpacity(0.35)),
+                        border:
+                            Border.all(color: Colors.white.withOpacity(0.35)),
                       ),
-                      child: const Icon(Icons.eco_rounded, color: AppColors.textOnPrimary, size: 28),
+                      child: const Icon(Icons.eco_rounded,
+                          color: AppColors.textOnPrimary, size: 28),
                     ),
                     const SizedBox(height: AppConstants.space16),
                     Text(
                       context.tr('setupWelcomeTitle'),
-                      style: AppTextStyles.headline.copyWith(color: AppColors.textOnPrimary),
+                      style: AppTextStyles.headline
+                          .copyWith(color: AppColors.textOnPrimary),
                     ),
                     const SizedBox(height: AppConstants.space8),
                     Text(
                       context.tr('setupLanguagePrompt'),
-                      style: AppTextStyles.body.copyWith(color: AppColors.textOnPrimary.withOpacity(0.85)),
+                      style: AppTextStyles.body.copyWith(
+                          color: AppColors.textOnPrimary.withOpacity(0.85)),
                     ),
                   ],
                 ),
@@ -152,9 +161,15 @@ class _LanguageStep extends StatelessWidget {
                     vertical: AppConstants.space12,
                   ),
                   decoration: BoxDecoration(
-                    color: selected ? AppColors.primary.withOpacity(0.08) : AppColors.surface,
-                    borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
-                    border: Border.all(color: selected ? AppColors.primary.withOpacity(0.4) : AppColors.divider),
+                    color: selected
+                        ? AppColors.primary.withOpacity(0.08)
+                        : AppColors.surface,
+                    borderRadius:
+                        BorderRadius.circular(AppConstants.radiusMedium),
+                    border: Border.all(
+                        color: selected
+                            ? AppColors.primary.withOpacity(0.4)
+                            : AppColors.divider),
                   ),
                   child: Row(
                     children: [
@@ -162,12 +177,16 @@ class _LanguageStep extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(lang.nativeName, style: AppTextStyles.bodyLarge),
-                            Text(lang.englishName, style: AppTextStyles.caption),
+                            Text(lang.nativeName,
+                                style: AppTextStyles.bodyLarge),
+                            Text(lang.englishName,
+                                style: AppTextStyles.caption),
                           ],
                         ),
                       ),
-                      if (selected) const Icon(Icons.check_circle_rounded, color: AppColors.primary),
+                      if (selected)
+                        const Icon(Icons.check_circle_rounded,
+                            color: AppColors.primary),
                     ],
                   ),
                 ),
@@ -182,7 +201,19 @@ class _LanguageStep extends StatelessWidget {
             AppConstants.space24,
             AppConstants.space24,
           ),
-          child: PrimaryButton(label: context.tr('continueLabel'), onPressed: onNext),
+          child: PrimaryButton(
+              label: context.tr('continueLabel'), onPressed: onNext),
+        ),
+        Center(
+          child: TextButton(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const LoginScreen()),
+            ),
+            child: Text(
+              context.tr('signIn'),
+              style: AppTextStyles.body.copyWith(color: AppColors.primary),
+            ),
+          ),
         ),
       ],
     );
@@ -193,7 +224,11 @@ class _LocationStep extends StatelessWidget {
   final TextEditingController controller;
   final VoidCallback onBack;
   final VoidCallback onDone;
-  const _LocationStep({super.key, required this.controller, required this.onBack, required this.onDone});
+  const _LocationStep(
+      {super.key,
+      required this.controller,
+      required this.onBack,
+      required this.onDone});
 
   @override
   Widget build(BuildContext context) {
@@ -215,7 +250,8 @@ class _LocationStep extends StatelessWidget {
               shape: BoxShape.circle,
               color: AppColors.primary.withOpacity(0.1),
             ),
-            child: const Icon(Icons.location_on_rounded, color: AppColors.primary, size: 28),
+            child: const Icon(Icons.location_on_rounded,
+                color: AppColors.primary, size: 28),
           ),
           const SizedBox(height: AppConstants.space16),
           Text(context.tr('setupLocationTitle'), style: AppTextStyles.headline),
@@ -225,7 +261,8 @@ class _LocationStep extends StatelessWidget {
           TextField(
             controller: controller,
             textCapitalization: TextCapitalization.words,
-            decoration: InputDecoration(hintText: context.tr('setupLocationHint')),
+            decoration:
+                InputDecoration(hintText: context.tr('setupLocationHint')),
           ),
           const Spacer(),
           PrimaryButton(label: context.tr('continueLabel'), onPressed: onDone),
@@ -233,7 +270,8 @@ class _LocationStep extends StatelessWidget {
           Center(
             child: TextButton(
               onPressed: onDone,
-              child: Text(context.tr('skipForNow'), style: AppTextStyles.body.copyWith(color: AppColors.primary)),
+              child: Text(context.tr('skipForNow'),
+                  style: AppTextStyles.body.copyWith(color: AppColors.primary)),
             ),
           ),
         ],
